@@ -9,6 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 import math
 import re
+import datetime
 
 # 这些始终要用到，作为全局，可以加快code运行速度
 chrome_options = webdriver.ChromeOptions()
@@ -121,7 +122,25 @@ def getDetail(path):
     return
 
 
-# 滚动获取信息的方法
+def process_time(rat_time):
+    #  2020-05-07 len = 10
+    if len(rat_time) == 10:
+        return rat_time
+    else:
+        if len(re.findall(r'^\d+小时前$', rat_time)):
+            return (datetime.datetime.now() - datetime.timedelta(hours=int(rat_time[:-3]))).strftime("%Y-%m-%d")
+
+        elif len(re.findall(r'^\d+分钟前$', rat_time)):
+            return (datetime.datetime.now()).strftime("%Y-%m-%d")
+
+        elif rat_time == '昨天':
+            return (datetime.datetime.now()-datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+        elif len(rat_time) == 5:  # 如果没有年份
+            return str(datetime.datetime.now().year) + '-' + rat_time
+
+
+# 滚动获取评论信息的方法
 def get_rating(url,page_num):
     # 获取网页源代码
     driver.get(url)
@@ -129,12 +148,14 @@ def get_rating(url,page_num):
     # page_num = long_page_num
     id_names = []
     ratings = []
+    rating_times = []
     # 循环几次  滚动几次
     for i in range(page_num):
-        # 让浏览器执行简单的js代码，模拟滚动到底部（只滚动一次）
+        # 让浏览器执行简单的js代码，document.body.scrollHeight：窗口高度
         js = "window.scrollTo(0,document.body.scrollHeight)"
         driver.execute_script(js)
         time.sleep(rand_seconds)
+        # 具体看网页是怎么样的，b站是滑动到哪里，上面的都会加载进来，因此选取滑动之后的网页
         if i == page_num-1:
             # 获取页面
             content = driver.page_source
@@ -145,13 +166,18 @@ def get_rating(url,page_num):
                 id_names.append(li.find('div',re.compile('review-author-name')).string.strip())
                 rat = len(li.find_all('i', 'icon-star icon-star-light'))  # 评分
                 ratings.append(rat)
+                rat_time = li.find('div', 'review-author-time').string
 
-    return id_names,ratings
+                # 对特殊时间做处理
+                rat_time = process_time(rat_time)
+                rating_times.append(rat_time)
+
+    return id_names,ratings,rating_times
 
 
 # 获取rating，相关信息，并存入csv
 def get_rating_data(path):
-    detail = pd.read_csv(detail_data_path)
+    detail = pd.read_csv(path)
     # print(min(detail['short_comm']+detail['long_comm']))  # 222;222*470=104340
     # print(detail.columns)  # ['v_id', 'title', 'genres', 'year', 'long_comm', 'short_comm','detail_link']
     minn = min(detail['short_comm'] + detail['long_comm'])
@@ -161,6 +187,8 @@ def get_rating_data(path):
     v_ids = detail['v_id']
     for ind, url in enumerate(tqdm(rating_links)):
         # print(ind,url)
+        if ind< 62:
+            continue
         # 按比例取长短评价
         lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
         sho = minn - lon
@@ -168,19 +196,20 @@ def get_rating_data(path):
         long_page_num = math.ceil(lon / 20)  # 一页20个数据，看需要滑动几页
         short_page_num = math.ceil(sho / 20)  # 一页20个数据，看需要滑动几页
 
-        id_l, rat_l = get_rating(url + r'#long', long_page_num)
-        id_s, rat_s = get_rating(url + r"#short", short_page_num)
+        id_l, rat_l,time_l = get_rating(url + r'#long', long_page_num)
+        id_s, rat_s,time_s = get_rating(url + r"#short", short_page_num)
         # print(len(id_l))
         # print(len(id_s))
 
         # 需要把之前的长短评价各自分配的数目取到
         id_total = id_l[0:lon]+id_s[0:sho]
         rat_total = rat_l[0:lon]+rat_s[0:sho]
+        rating_time_total = time_l[0:lon]+time_s[0:sho]
         # print(len(id_total))
         # print(len(rat_total))
 
         # 封装到DataFrame
-        Data_rating = {'user_id_name': id_total,'v_id':[v_ids[ind]]*minn,'rating':rat_total}
+        Data_rating = {'user_id_name': id_total,'v_id':[v_ids[ind]]*minn,'rating':rat_total,'rating_time':rating_time_total}
         # print(Data_rating)
         fname_rating = "rating_data.csv"
         wirte2csv(Data_rating, fname_rating)
