@@ -48,8 +48,9 @@ def getFirstContent(soup):
 
 
 # 获取番剧的一些信息
-def getDetail(path):
-    links = pd.read_csv(path)
+def getDetail(path,fname_detail):
+    links_ = pd.read_csv(path)
+    links = links_.drop_duplicates()  # 可能有重复的需要去重
     urls = links['links']
     cont_id = 0
     print("start!")
@@ -90,9 +91,10 @@ def getDetail(path):
             year = soup2.find('div','media-info-time').span.string[0:4]
             years.append(year)
 
-            # 增加id的大小
+            # 增加id的
+            v_ids.append(soup1.find('a','av-link').string)
             cont_id += 1
-            v_ids.append(cont_id)
+            # v_ids.append(cont_id)
             # 获取当前页面链接
             detail_link.append(r'http:' + next_link)
 
@@ -105,7 +107,6 @@ def getDetail(path):
                 Data_detail = {'v_id': v_ids, 'title': titles, 'genres': genres, 'year': years,
                                'long_comm': long_comms,
                                'short_comm': short_comms, 'detail_link': detail_link}
-                fname_detail = "new_video_data.csv"
                 wirte2csv(Data_detail, fname_detail)
                 # 清空
                 v_ids = []  # id
@@ -187,8 +188,8 @@ def get_rating_data(path):
     v_ids = detail['v_id']
     for ind, url in enumerate(tqdm(rating_links)):
         # print(ind,url)
-        if ind< 425:
-            continue
+        # if ind< 425:
+        #     continue
         # 按比例取长短评价
         # print(v_ids[61])
         lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
@@ -236,7 +237,7 @@ if __name__ == '__main__':
     rating = []  # 评分
     flag = 0  # 要不要爬取番剧列表页和番剧信息
     if flag:
-
+        # step1
         for i in tqdm(range(21)):
             # 从0开始的原因是，对于第一次访问的页面会连续访问两次，导致重复爬取，所以i=0时获取页面，但是不去存入信息
             # 剧番页面，从1-20页
@@ -259,14 +260,12 @@ if __name__ == '__main__':
             print('爬到第%d页' % i)
             # 暂停
             time.sleep(5)
-
-        # 读取csv
-        # path = './link_data_test.csv'
-        path = './link_data.csv'
-        # 爬取细节并存入新的csv
-        getDetail(path)
-
-    detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\new_video_data.csv'
+    # step2
+    path = r'D:\Learning\postgraduate\bilibili\scrapy_py\link_data.csv'
+    # 爬取细节并存入新的csv
+    getDetail(path,fname_detail = "video_data.csv")
+    # step3
+    detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
     get_rating_data(detail_data_path)
 
     driver.close()
