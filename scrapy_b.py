@@ -166,11 +166,11 @@ def get_rating(url,page_num):
                 id_names.append(li.find('div',re.compile('review-author-name')).string.strip())
                 rat = len(li.find_all('i', 'icon-star icon-star-light'))  # 评分
                 ratings.append(rat)
-                rat_time = li.find('div', 'review-author-time').string
 
+                rat_time = li.find('div', 'review-author-time').string
                 # 对特殊时间做处理
-                rat_time = process_time(rat_time)
-                rating_times.append(rat_time)
+                rat_time_2 = process_time(rat_time)
+                rating_times.append(str(rat_time_2))
 
     return id_names,ratings,rating_times
 
@@ -187,9 +187,10 @@ def get_rating_data(path):
     v_ids = detail['v_id']
     for ind, url in enumerate(tqdm(rating_links)):
         # print(ind,url)
-        if ind< 62:
+        if ind< 425:
             continue
         # 按比例取长短评价
+        # print(v_ids[61])
         lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
         sho = minn - lon
 
