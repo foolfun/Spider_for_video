@@ -88,7 +88,7 @@ def getDetail(path,fname_detail):
                 tags = tags + str(tag.string) + ','  # tags='漫画改,战斗,热血,声控,'
             genres.append(tags)
             # 截取年份：'2019年4月7日开播'
-            year = soup2.find('div','media-info-time').span.string[0:4]
+            year = soup2.find('div','media-info-time').span.string[:-2]
             years.append(year)
 
             # 增加id的
