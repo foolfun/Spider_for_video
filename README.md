@@ -35,14 +35,8 @@
  出现的问题  | 猜测原因  | 解决方法
  ---- | ----- | ------  
   用request获取页面code无法获取真正的内容  | 页面是js动态加载的 | 借助selenium库，利用模拟浏览器模式打开网页获取内容<br/>```chrome_options = webdriver.ChromeOptions()<br/>#使用headless无界面浏览器模式```<br/>```chrome_options.add_argument('--headless') # 增加无界面选项```<br/>```chrome_options.add_argument('--disable-gpu') #如果不加这个选项，有时定位会出现问题```<br/>```#启动浏览器```<br/>```driver =webdriver.Chrome(options=chrome_options)``` <br/>```driver.get(url)```<br/>```content = driver.page_source```<br/>```soup = BeautifulSoup(content, 'lxml')```<br/>```driver.close()```<br/> 
- 单元格内容  | 单元格内容 | 单元格内容
+ 突然访问失败，网页浏览也是  | ip被限制 | 设置随机等待时间，<br/>```rand_seconds = random.choice([1, 3]) + random.random()```<br/>  ```sleep(rand_seconds) ```|
+| 重复爬取第一页内容 | 反爬机制 | 在更改url获取页面code的时候，	<br/>使用 driver.refresh()进行页面刷新 
   单元格内容  | 单元格内容 | 单元格内容 
    单元格内容  | 单元格内容 | 单元格内容 
-
- 出现的问题 | 猜测原因 | 解决方法 
-: ------ |: ------ | :------ 
-| |  | |
-| 突然访问失败，网页浏览也是 | ip被限制 | 设置随机等待时间，<br/>```rand_seconds = random.choice([1, 3]) + random.random()```<br/>  ```sleep(rand_seconds) ```|
-| 重复爬取第一页内容 | 反爬机制 | 在更改url获取页面code的时候，	<br/>使用 driver.refresh()进行页面刷新 |
-
 
