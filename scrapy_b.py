@@ -234,9 +234,10 @@ def wirte2csv(Data,fname):
 
 
 if __name__ == '__main__':
-    rating = []  # 评分
-    flag = 0  # 要不要爬取番剧列表页和番剧信息
-    if flag:
+    flag1 = 0  # 要不要爬取番剧列表页
+    flag2 = 0  # 要不要爬取番剧信息
+    flag3 = 0  # 要不要爬取评分
+    if flag1:
         # step1
         for i in tqdm(range(21)):
             # 从0开始的原因是，对于第一次访问的页面会连续访问两次，导致重复爬取，所以i=0时获取页面，但是不去存入信息
@@ -260,12 +261,14 @@ if __name__ == '__main__':
             print('爬到第%d页' % i)
             # 暂停
             time.sleep(5)
-    # step2
-    path = r'D:\Learning\postgraduate\bilibili\scrapy_py\link_data.csv'
-    # 爬取细节并存入新的csv
-    getDetail(path,fname_detail = "video_data.csv")
-    # step3
-    detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
-    get_rating_data(detail_data_path)
+    if flag2:
+        # step2
+        path = r'D:\Learning\postgraduate\bilibili\scrapy_py\link_data.csv'
+        # 爬取细节并存入新的csv
+        getDetail(path,fname_detail = "video_data.csv")
+    if flag3:
+        # step3
+        detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
+        get_rating_data(detail_data_path)
 
     driver.close()
