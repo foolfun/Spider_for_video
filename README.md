@@ -21,22 +21,22 @@
 
 ### 实施流程：
 
-    1、获取数据：爬虫
+1、获取数据：爬虫
 
-    2、了解数据：数据展示和处理(统计：一共有多少番剧，一共有多少用户进行评分，
+2、了解数据：数据展示和处理(统计：一共有多少番剧，一共有多少用户进行评分，
 
-    在爬虫过程中，已经进行的数据处理有：1、对重复爬取的link进行去重；2、对评论时间的处理，把只有月日、“昨天”，“x小时前”，“x分钟前”这样的非标准日期进行转化，变成年月日的日期形式；3、对于不存在评论的番剧已经进行跳过处理，不会爬取；
-    获得爬虫数据之后需要的数据处理：1、对于还有可能的存在是数据重复进行处理
+在爬虫过程中，已经进行的数据处理有：1、对重复爬取的link进行去重；2、对评论时间的处理，把只有月日、“昨天”，“x小时前”，“x分钟前”这样的非标准日期进行转化，变成年月日的日期形式；3、对于不存在评论的番剧已经进行跳过处理，不会爬取；
+获得爬虫数据之后需要的数据处理：1、对于还有可能的存在是数据重复进行处理
 
-    爬虫存在的问题：1、网络问题，会导致一些内容没有爬取到，而没存入csv中；2、可能有些特殊情况，比如评论时间的问题等，格式不一致或者其他情况，导致未爬取成功。这些情况导致的数据缺失问题，由一开始的基数进行弥补，即为了获取较多的数据，一开始选取的番剧数量也足够多。
+爬虫存在的问题：1、网络问题，会导致一些内容没有爬取到，而没存入csv中；2、可能有些特殊情况，比如评论时间的问题等，格式不一致或者其他情况，导致未爬取成功。这些情况导致的数据缺失问题，由一开始的基数进行弥补，即为了获取较多的数据，一开始选取的番剧数量也足够多。
 
-    爬虫遇到的问题&解决方法：
+爬虫遇到的问题&解决方法：
 
-     出现的问题  | 猜测原因  | 解决方法
-     ---- | ----- | ------  
-      用request获取页面code无法获取真正的内容  | 页面是js动态加载的 | 借助selenium库，利用模拟浏览器模式打开网页获取内容<br/>```chrome_options = webdriver.ChromeOptions()<br/>#使用headless无界面浏览器模式```<br/>```chrome_options.add_argument('--headless') # 增加无界面选项```<br/>```chrome_options.add_argument('--disable-gpu') #如果不加这个选项，有时定位会出现问题```<br/>```#启动浏览器```<br/>```driver =webdriver.Chrome(options=chrome_options)``` <br/>```driver.get(url)```<br/>```content = driver.page_source```<br/>```soup = BeautifulSoup(content, 'lxml')```<br/>```driver.close()```<br/> 
-     突然访问失败，网页浏览也是  | ip被限制 | 设置随机等待时间，<br/>```rand_seconds = random.choice([1, 3]) + random.random()```<br/>  ```sleep(rand_seconds) ```|
-    | 重复爬取第一页内容 | 反爬机制 | 在更改url获取页面code的时候，	<br/>使用 driver.refresh()进行页面刷新 
-      单元格内容  | 单元格内容 | 单元格内容 
-       单元格内容  | 单元格内容 | 单元格内容 
+ 出现的问题  | 猜测原因  | 解决方法
+ ---- | ----- | ------  
+  用request获取页面code无法获取真正的内容  | 页面是js动态加载的 | 借助selenium库，利用模拟浏览器模式打开网页获取内容<br/>```chrome_options = webdriver.ChromeOptions()<br/>#使用headless无界面浏览器模式```<br/>```chrome_options.add_argument('--headless') # 增加无界面选项```<br/>```chrome_options.add_argument('--disable-gpu') #如果不加这个选项，有时定位会出现问题```<br/>```#启动浏览器```<br/>```driver =webdriver.Chrome(options=chrome_options)``` <br/>```driver.get(url)```<br/>```content = driver.page_source```<br/>```soup = BeautifulSoup(content, 'lxml')```<br/>```driver.close()```<br/> 
+ 突然访问失败，网页浏览也是  | ip被限制 | 设置随机等待时间，<br/>```rand_seconds = random.choice([1, 3]) + random.random()```<br/>  ```sleep(rand_seconds) ```|
+ 重复爬取第一页内容 | 反爬机制 | 在更改url获取页面code的时候，	<br/>使用 driver.refresh()进行页面刷新 
+  单元格内容  | 单元格内容 | 单元格内容 
+   单元格内容  | 单元格内容 | 单元格内容 
 
