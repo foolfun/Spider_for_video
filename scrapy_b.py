@@ -192,8 +192,11 @@ def get_rating_data(path):
         #     continue
         # 按比例取长短评价
         # print(v_ids[61])
-        lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
+        # 因为长评论会比短评论少，可能用单纯的通过最小总评论数进行比例计算，可能会出现长评数不够，最终会有一些数据的丢失，为此这里进行最小的比较
+        lon = min(int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn),long_num[ind])
         sho = minn - lon
+#         lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
+#         sho = minn - lon
 
         long_page_num = math.ceil(lon / 20)  # 一页20个数据，看需要滑动几页
         short_page_num = math.ceil(sho / 20)  # 一页20个数据，看需要滑动几页
