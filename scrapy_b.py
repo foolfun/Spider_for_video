@@ -123,6 +123,61 @@ def getDetail(path,fname_detail):
     return
 
 
+# 获取番剧的相关推荐
+def getRecommond(path,fname_detail):
+    detail_data = pd.read_csv(path)
+    detail_data_ = detail_data.drop_duplicates()  # 可能有重复的需要去重
+    urls = detail_data_['detail_link']
+    cont_id = 0
+    print("start!")
+    v_ids = []  # id
+    rec_id = []  # 推荐id
+    rec_title = []  # 推荐名字
+    for url2 in tqdm(urls):
+        try:
+            soup1 = get_soup(url2)
+            # 增加count
+            cont_id += 1
+
+            v_ids.append(detail_data_.loc[cont_id,'v_id'])
+            # 获取推荐番剧的title
+            tmp_title = []
+            for title in soup1.find_all('div','slide-item-title'):
+                tmp_title.append(title.string)
+            rec_title.append(tmp_title)
+            # 获取推荐番剧的link
+            rec_links = []
+            for l in soup1.find_all('div','slide-item-info'):
+                rec_links.append(l.find('a')['href'])
+            # 获取推荐番剧的id
+            tmp_id = []
+            for link in rec_links:
+                soup2 = get_soup(r'http:'+link)
+                tmp_id.append(soup2.find('a', 'av-link').string)
+
+            rec_id.append(tmp_id)
+
+            if cont_id % 10 == 0:
+                print('已爬取%d条' % cont_id)
+
+            # 每5条写入一次，防止中断导致数据丢失
+            if cont_id % 5 == 0:
+                # 写入
+                Data_detail = {'v_id': v_ids, 'rec_id': rec_id,'rec_title':rec_title}
+                wirte2csv(Data_detail, fname_detail)
+                # 清空
+                v_ids = []  # id
+                rec_id = []  # 推荐id
+                rec_title = []  # 推荐名字
+
+            time.sleep(rand_seconds)
+
+        except Exception:
+            pass
+    return
+
+
+
 def process_time(rat_time):
     #  2020-05-07 len = 10
     if len(rat_time) == 10:
@@ -179,7 +234,7 @@ def get_rating(url,page_num):
 # 获取rating，相关信息，并存入csv
 def get_rating_data(path):
     detail = pd.read_csv(path)
-    # print(min(detail['short_comm']+detail['long_comm']))  # 222;222*470=104340
+    # print(min(detail['short_comm']+detail['long_comm']))  # 230;
     # print(detail.columns)  # ['v_id', 'title', 'genres', 'year', 'long_comm', 'short_comm','detail_link']
     minn = min(detail['short_comm'] + detail['long_comm'])
     rating_links = detail['detail_link']
@@ -195,8 +250,6 @@ def get_rating_data(path):
         # 因为长评论会比短评论少，可能用单纯的通过最小总评论数进行比例计算，可能会出现长评数不够，最终会有一些数据的丢失，为此这里进行最小的比较
         lon = min(int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn),long_num[ind])
         sho = minn - lon
-#         lon = int((long_num[ind] / (long_num[ind] + short_num[ind])) * minn)
-#         sho = minn - lon
 
         long_page_num = math.ceil(lon / 20)  # 一页20个数据，看需要滑动几页
         short_page_num = math.ceil(sho / 20)  # 一页20个数据，看需要滑动几页
@@ -240,6 +293,7 @@ if __name__ == '__main__':
     flag1 = 0  # 要不要爬取番剧列表页
     flag2 = 0  # 要不要爬取番剧信息
     flag3 = 0  # 要不要爬取评分
+    flag4 = 1  # 要不要爬取相关推荐
     if flag1:
         # step1
         for i in tqdm(range(21)):
@@ -273,5 +327,9 @@ if __name__ == '__main__':
         # step3
         detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
         get_rating_data(detail_data_path)
-
+    if flag4:
+        # step2
+        path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
+        # 爬取细节并存入新的csv
+        getRecommond(path, fname_detail="recommend_data.csv")
     driver.close()
