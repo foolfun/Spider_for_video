@@ -64,19 +64,23 @@ def getDetail(path,fname_detail):
     for url2 in tqdm(urls):
         try:
             soup1 = get_soup(r'http:' + url2)
-            next_link = soup1.find('a', 'media-title')['href']
+            next_link = soup1.find('a', 'mediainfo_media_desc_section__bOFBw')['href']
             soup2 = get_soup(r'http:' + next_link + r'#long')  # 长评页面
 
             '''
-                        soup2.find('div', 'media-tab-nav').find('ul').find_all('li'):
-                        [<li class="">作品详情</li>,
-                         <li class="on">长评 ( 572 )</li>,
-                         <li class="">短评 ( 117867 )</li>,
-                         <li class="">相关视频</li>]
-                        '''
+                soup2.find('div', 'media-tab-nav').find('ul').find_all('li'):
+                [<li class="">作品详情</li>,
+                 <li class="on">长评 ( 572 )</li>,
+                 <li class="">短评 ( 117867 )</li>,
+                 <li class="">相关视频</li>]
+            '''
             # 评分数， '长评 ( 572 )' 取数字572,变为int,没有评论等信息的不需要，进行跳过
-            long = int(soup2.find('div', 'media-tab-nav').find('ul').find_all('li')[1].string[5:-2])
-            short = int(soup2.find('div', 'media-tab-nav').find('ul').find_all('li')[2].string[5:-2])
+            try:
+                long = int(soup2.find('div', 'media-tab-nav').find('ul').find_all('li')[1].string[5:-2])
+                short = int(soup2.find('div', 'media-tab-nav').find('ul').find_all('li')[2].string[5:-2])
+            except:
+                long=0
+                short=0
             long_comms.append(long)
             short_comms.append(short)
             # 取标题
@@ -88,11 +92,11 @@ def getDetail(path,fname_detail):
                 tags = tags + str(tag.string) + ','  # tags='漫画改,战斗,热血,声控,'
             genres.append(tags)
             # 截取年份：'2019年4月7日开播'
-            year = soup2.find('div','media-info-time').span.string[:-2]
+            year = soup2.find('div','media-info-time').span.string
             years.append(year)
 
             # 增加id的
-            v_ids.append(soup1.find('a','av-link').string)
+            v_ids.append(soup1.find('a','mediainfo_avLink__bN7nf').string)
             cont_id += 1
             # v_ids.append(cont_id)
             # 获取当前页面链接
@@ -290,9 +294,9 @@ def wirte2csv(Data,fname):
 
 
 if __name__ == '__main__':
-    flag1 = 0  # 要不要爬取番剧列表页
-    flag2 = 0  # 要不要爬取番剧信息
-    flag3 = 0  # 要不要爬取评分
+    flag1 = 1  # 要不要爬取番剧列表页
+    flag2 = 1  # 要不要爬取番剧信息
+    flag3 = 1  # 要不要爬取评分
     flag4 = 1  # 要不要爬取相关推荐
     if flag1:
         # step1
@@ -320,16 +324,16 @@ if __name__ == '__main__':
             time.sleep(5)
     if flag2:
         # step2
-        path = r'D:\Learning\postgraduate\bilibili\scrapy_py\link_data.csv'
+        path = r'./link_data.csv'
         # 爬取细节并存入新的csv
         getDetail(path,fname_detail = "video_data.csv")
     if flag3:
         # step3
-        detail_data_path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
+        detail_data_path = r'./video_data.csv'
         get_rating_data(detail_data_path)
     if flag4:
         # step2
-        path = r'D:\Learning\postgraduate\bilibili\scrapy_py\video_data.csv'
+        path = r'./video_data.csv'
         # 爬取细节并存入新的csv
         getRecommond(path, fname_detail="recommend_data.csv")
     driver.close()
